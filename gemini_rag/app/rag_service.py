@@ -117,7 +117,7 @@ class RAGService:
 
         prompt = f"""Use ONLY the following context to answer the question.
 You MUST detect the language of the question below and respond ONLY in that language.
-If the context does not contain relevant information to answer the question, respond with 'No relevant information found in the knowledge base.'
+If the context does not contain relevant information to answer the question, respond with 'В базе знаний не найдено соответствующей информации.'
 If the question asks for a table, return it as clean markdown (no code fences).
 If it asks for a single number/year, return only that value.
 
