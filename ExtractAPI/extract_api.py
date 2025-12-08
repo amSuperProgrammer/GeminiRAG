@@ -31,6 +31,9 @@ async def load_and_extract(file: UploadFile) -> str:
             raw = extract_text_from_pdf(tmp_path)
         elif suffix == ".docx":
             raw = extract_text_from_docx(tmp_path)
+        elif suffix == ".txt":
+            with open(tmp_path, "r", encoding="utf-8", errors="ignore") as f:
+                raw = f.read()
         else:
             raise HTTPException(status_code=400, detail="Unsupported file format")
 
