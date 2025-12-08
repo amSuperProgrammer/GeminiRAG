@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gemini RAG — Загрузка</title>
+  <link rel="stylesheet" href="Style.css" />
+  <link rel="icon" href="assets/logo.svg" />
+</head>
+
+<body>
+
+  <div class="sidebar">
+    <button onclick="location.href='Chat.html'" class="tab-btn">Чаты</button>
+    <button onclick="location.href='Upload.html'" class="tab-btn active">Загрузка</button>
+  </div>
+
+  <div class="container">
+    <header>
+      <h1>Gemini RAG</h1>
+      <p>Контекстный ИИ на вашей базе знаний</p>
+    </header>
+
+    <section class="upload-section">
+      <h2>Загрузите документы</h2>
+
+      <div class="drop-zone" id="dropZone">
+        <p>Перетащите файлы сюда или кликните</p>
+        <input type="file" multiple accept=".pdf,.txt,.docx" id="fileInput" />
+      </div>
+
+      <button id="uploadBtn" disabled>Загрузить в базу</button>
+      <div id="uploadStatus"></div>
+    </section>
+  </div>
+
+  <script src="Script.js"></script>
+</body>
+</html>
