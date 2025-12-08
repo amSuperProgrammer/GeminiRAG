@@ -1,3 +1,16 @@
+const socket = io("https://agent.memphis.netcraze.pro", {
+  path: "/socket.io/"
+});
+
+socket.on("connect", () => {
+  console.log("Rasa connected");
+});
+
+
+
+
+
+
 const newChatBtn = document.getElementById('newChatBtn');
 const chatList = document.getElementById('chatList');
 const chatHistory = document.getElementById('chatHistory');
@@ -217,12 +230,17 @@ async function handleSend() {
     addMessageToUI(text, "user");
     await sendMessageToServer(text, 0);
 
-    // ответ модели (тест)
-    setTimeout(async () => {
-        const botReply = "💡 Ответ модели";
-        addMessageToUI(botReply, "bot");
-        await sendMessageToServer(botReply, 1);
-    }, 400);
+    // // ответ модели (тест)
+    // setTimeout(async () => {
+    //     const botReply = "💡 Ответ модели";
+    //     addMessageToUI(botReply, "bot");
+    //     await sendMessageToServer(botReply, 1);
+    // }, 400);
+
+    socket.emit("user_uttered", {
+        message: text,
+        session_id: String(currentChatIndex)
+    });
 }
 
 // загрузка всех чатов
@@ -269,6 +287,27 @@ window.addEventListener("DOMContentLoaded", () => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+socket.on("bot_uttered", async (response) => {
+    const reply = response.text || "";
+
+    console.log("answer: ", reply)
+
+    addMessageToUI(reply, "bot");
+    await sendMessageToServer(reply, 1);
+});
 
 
 
