@@ -1,7 +1,10 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Any
-from .rag_service import rag_service
+from app.rag_service import rag_service
 
 app = FastAPI()
 
