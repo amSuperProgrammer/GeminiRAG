@@ -429,6 +429,6 @@ uploadBtn.addEventListener("click", async () => {
         uploadStatus.innerText = "❌ Ошибка загрузки";
         console.error(err);
     } finally {
-        uploadBtn.disabled = true;
+        // uploadBtn.disabled = true;
     }
 });

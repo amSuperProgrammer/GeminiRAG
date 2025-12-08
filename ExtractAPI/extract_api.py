@@ -3,11 +3,19 @@ from text_utils import extract_text_from_pdf, extract_text_from_docx, clean_text
 import tempfile
 import google.generativeai as genai
 import os
+from fastapi.middleware.cors import CORSMiddleware
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 emb_model = "models/text-embedding-004"
 
 app = FastAPI(title="Ingest & Extract API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Разрешить любые источники (в т.ч. Origin: null)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # --- helper: сохранить файл и вернуть очищенный текст ---
@@ -79,6 +87,6 @@ if __name__ == "__main__":
     uvicorn.run(
         "extract_api:app",
         host="0.0.0.0",
-        port=8002,
+        port=8004,
         reload=True
     )

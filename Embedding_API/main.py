@@ -6,12 +6,23 @@ from google.genai import types
 from  dotenv import load_dotenv
 import os
 import re
+from fastapi import HTTPException
+from typing import List, Dict, Any
+from fastapi.middleware.cors import CORSMiddleware
+
 load_dotenv()
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # Инициализация FastAPI
 app = FastAPI(title="Text Chunking & Embedding API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Разрешить любые источники (в т.ч. Origin: null)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Настройка Gemini API
 GEMINI_APIKEY = os.getenv("GEMINI_APIKEY")
@@ -111,6 +122,30 @@ class DocumentEmbeddingResponse(BaseModel):
     
 #     return chunks
 #endregion
+
+@app.post("/chunks_get")
+async def chunks_get(request: DocumentRequest):
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=request.chunk_size * 4,
+        chunk_overlap=request.overlap * 4,
+        separators=["\n\n", "\n", " ", ""],
+        keep_separator=False,
+    )
+
+    chunks = splitter.split_text(request.text)
+
+    docs = [
+        {
+            "content": chunk,
+            "meta": {
+                "title": request.title,
+                "chunk": i
+            }
+        }
+        for i, chunk in enumerate(chunks)
+    ]
+
+    return docs
 
 # Основной эндпоинт
 @app.post("/process", response_model=DocumentEmbeddingResponse)
@@ -221,6 +256,6 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",  # или просто app, если запускаешь из этого же файла
         host="0.0.0.0",
-        port=8000,
+        port=8005,
         reload=True  # автоперезагрузка при изменениях
     )
