@@ -48,8 +48,8 @@ rasa.db
 *.sqlite3
 
 # Secrets and credentials (do not commit)
-credentials.yml
-endpoints.yml
+#credentials.yml
+#endpoints.yml
 secrets.yml
 *.key
 *.pem
