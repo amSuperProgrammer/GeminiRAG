@@ -1,0 +1,83 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.env/
+.venv/
+venv/
+env/
+env.bak/
+venv.bak/
+
+# Python packaging / build
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+*.egg
+*.whl
+
+# Editor / OS files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# Logs and runtime files
+*.log
+logs/
+tmp/
+*.pid
+
+# Rasa specific
+.rasa/
+# models/
+actions/__pycache__/
+actions/.pytest_cache/
+**/__pycache__/
+*.tar.gz
+nlu_models/
+
+# SQLite / DB / trackers
+rasa.db
+*.db
+*.sqlite3
+
+# Secrets and credentials (do not commit)
+credentials.yml
+endpoints.yml
+secrets.yml
+*.key
+*.pem
+.env.*
+
+# Data exports, temporary or large files
+data/tmp/
+data/exports/
+*.zip
+*.tar
+
+# Docker
+docker-compose.override.yml
+.env.docker
+
+# Tests / coverage
+htmlcov/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Optional: ignore files created by rasa X or other tools
+.rasa_x/
+.rasa-production/
+
+# Keep an allow-list example (uncomment to keep a specific model)
+!models/20251130-174804-instant-precision.tar.gz

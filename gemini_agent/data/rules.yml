@@ -1,0 +1,56 @@
+version: "3.1"
+
+rules:
+- rule: Ask language at session start
+  conversation_start: true
+  steps:
+    - action: action_session_start
+
+- rule: Set language and welcome
+  steps:
+    - intent: set_language
+    - action: utter_welcome  # Now conditional on the slot
+
+- rule: Handle greet
+  condition:
+    - slot_was_set:
+        - user_language  # Optional: Ensure language is set before greeting
+  steps:
+    - intent: greet
+    - action: utter_greet  # Now conditional
+
+- rule: Say goodbye anytime the user says goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+
+- rule: Say 'I am a bot' anytime the user challenges
+  steps:
+  - intent: bot_challenge
+  - action: utter_iamabot
+
+#- rule: Handle low NLU confidence
+#  steps:
+#    - intent: nlu_fallback
+#    - action: utter_default_fallback
+#    - action: action_listen
+
+- rule: Fallback / low confidence → query RAG
+  steps:
+    - intent: nlu_fallback
+    - action: action_query_rag
+
+#- rule: Handle out of scope
+#  steps:
+#    - intent: out_of_scope
+#    - action: utter_out_of_scope
+
+- rule: Out of scope → query RAG anyway
+  steps:
+    - intent: out_of_scope
+    - action: action_query_rag
+
+- rule: Ignore blank/whitespace messages
+  steps:
+    - intent: ignore_blank
+    - action: utter_out_of_scope

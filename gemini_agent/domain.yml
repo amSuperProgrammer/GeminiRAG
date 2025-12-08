@@ -1,0 +1,204 @@
+version: "3.1"
+
+intents:
+  - set_language
+  - ignore_blank
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - mood_great
+  - mood_unhappy
+  - bot_challenge
+
+responses:
+  utter_ask_language:
+    - text: "Please select your preferred language:\nПожалуйста, выберите предпочитаемый язык:\nӨзіңізге ыңғайлы тілді таңдаңыз:\n"
+      buttons:
+        - title: "English"
+          payload: '/set_language{{"language": "en"}}'
+        - title: "Russian"
+          payload: '/set_language{{"language": "ru"}}'
+        - title: "Kazakh"
+          payload: '/set_language{{"language": "kk"}}'
+
+  utter_welcome:
+    - condition:
+        - type: slot
+          name: user_language
+          value: en
+      text: "Welcome to AI-PREDICTUM"
+    - condition:
+        - type: slot
+          name: user_language
+          value: ru
+      text: "Добро пожаловать в AI-PREDICTUM"
+    - condition:
+        - type: slot
+          name: user_language
+          value: kk
+      text: "AI-PREDICTUM жүйесіне қош келдіңіз"
+
+  utter_default_fallback:
+    - condition:
+        - type: slot
+          name: user_language
+          value: en
+      text: "I'm sorry, I didn't quite understand that. Could you rephrase?"
+    - condition:
+        - type: slot
+          name: user_language
+          value: ru
+      text: "Извините, я не совсем понял. Не могли бы вы переформулировать?"
+    - condition:
+        - type: slot
+          name: user_language
+          value: kk
+      text: "Кешіріңіз, мен оны толық түсінбедім. Оны басқа сөзбен айта аласыз ба?"
+
+  utter_out_of_scope:
+    - condition:
+        - type: slot
+          name: user_language
+          value: en
+      text: "Sorry, I didn't quite understand..."
+    - condition:
+        - type: slot
+          name: user_language
+          value: ru
+      text: "Извините, я не совсем понял..."
+    - condition:
+        - type: slot
+          name: user_language
+          value: kk
+      text: "Кешіріңіз, мен толық түсінбедім..."
+
+  utter_greet:
+    - condition:
+        - type: slot
+          name: user_language
+          value: en
+      text: "Hey! How are you?"
+    - condition:
+        - type: slot
+          name: user_language
+          value: ru
+      text: "Привет! Как ты?"
+    - condition:
+        - type: slot
+          name: user_language
+          value: kk
+      text: "Сәлем! Қалайсың?"
+
+  utter_cheer_up:
+    - condition:
+        - type: slot
+          name: user_language
+          value: en
+      text: "Here is something to cheer you up:\nWhy did the scarecrow win an award? Because he was outstanding in his field. 😄"
+    - condition:
+        - type: slot
+          name: user_language
+          value: ru
+      text: "Вот что-то, чтобы вас подбодрить:\nПочему программист не плакал? Потому что он закоммитил свои чувства. 😅"
+    - condition:
+        - type: slot
+          name: user_language
+          value: kk
+      text: "Мұнда сізді көтеруге арналған нәрсе:\nНеге робот торта жейді? Себебі ол \"бағдарламадан\" тәтті нәрсе күтеді. 🤖🍰"
+
+  utter_did_that_help:
+    - condition:
+        - type: slot
+          name: user_language
+          value: en
+      text: "Did that help you?"
+    - condition:
+        - type: slot
+          name: user_language
+          value: ru
+      text: "Это помогло вам?"
+    - condition:
+        - type: slot
+          name: user_language
+          value: kk
+      text: "Бұл сізге көмектесті ме?"
+
+  utter_happy:
+    - condition:
+        - type: slot
+          name: user_language
+          value: en
+      text: "Great, carry on!"
+    - condition:
+        - type: slot
+          name: user_language
+          value: ru
+      text: "Отлично, продолжайте!"
+    - condition:
+        - type: slot
+          name: user_language
+          value: kk
+      text: "Тамаша, жалғастырыңыз!"
+
+  utter_goodbye:
+    - condition:
+        - type: slot
+          name: user_language
+          value: en
+      text: "Bye!"
+    - condition:
+        - type: slot
+          name: user_language
+          value: ru
+      text: "До свидания!"
+    - condition:
+        - type: slot
+          name: user_language
+          value: kk
+      text: "Қош болыңыз!"
+
+  utter_iamabot:
+    - condition:
+        - type: slot
+          name: user_language
+          value: en
+      text: "I am a bot, powered by Rasa."
+    - condition:
+        - type: slot
+          name: user_language
+          value: ru
+      text: "Я бот, работающий на Rasa."
+    - condition:
+        - type: slot
+          name: user_language
+          value: kk
+      text: "Мен Rasa-мен жұмыс істейтін ботпын."
+
+entities:
+  - language
+
+actions:
+#  - action_set_language
+  - action_session_start
+  - action_query_rag
+
+slots:
+#  user_language:
+#    type: text
+#    mappings:
+#      - type: custom
+#        run_action_every_turn: true
+#        action: action_set_language
+
+  user_language:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: language
+    initial_value: en
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
