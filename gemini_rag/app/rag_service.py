@@ -115,8 +115,21 @@ class RAGService:
         # if not context.strip():
         #     return {"answer": "No relevant information found in the knowledge base."}
 
+        prompt = f"""Use ONLY the following context to answer the question.
+Do not add any information that is not present in the context.
+If the question asks for a table, return it as clean markdown (no code fences).
+If it asks for a single number/year, return only that value.
+
+Context:
+{context}
+
+Question: {query_text}
+
+Answer:"""
+
 #         prompt = f"""Use ONLY the following context to answer the question.
 # Do not add any information that is not present in the context.
+# If the context does not contain relevant information to answer the question, respond with 'No relevant information found in the knowledge base.'
 # If the question asks for a table, return it as clean markdown (no code fences).
 # If it asks for a single number/year, return only that value.
 #
@@ -126,15 +139,6 @@ class RAGService:
 # Question: {query_text}
 #
 # Answer:"""
-
-        prompt = f"""
-
-Context:
-{context}
-
-Question: {query_text}
-
-Answer:"""
 
         try:
             answer = generate_answer(prompt)
