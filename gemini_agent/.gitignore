@@ -80,4 +80,4 @@ htmlcov/
 .rasa-production/
 
 # Keep an allow-list example (uncomment to keep a specific model)
-!models/20251130-174804-instant-precision.tar.gz
+!models/20251209-024850-silent-polygon.tar.gz

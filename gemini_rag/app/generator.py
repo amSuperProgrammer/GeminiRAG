@@ -8,7 +8,7 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise ValueError("❌ GEMINI_API_KEY environment variable is required")
 
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")  # or gemini-2.5-pro
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash-lite")  # or gemini-2.5-flash
 
 RETRIES = int(os.environ.get("GEN_RETRIES", "5"))
 RETRY_BACKOFF = float(os.environ.get("GEN_RETRY_BACKOFF", "2.0"))
