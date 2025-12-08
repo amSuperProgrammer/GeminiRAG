@@ -1,10 +1,10 @@
-const socket = io("https://agent.memphis.netcraze.pro", {
-  path: "/socket.io/"
-});
+// const socket = io("https://agent.memphis.netcraze.pro", {
+//   path: "/socket.io/"
+// });
 
-socket.on("connect", () => {
-  console.log("Rasa connected");
-});
+// socket.on("connect", () => {
+//   console.log("Rasa connected");
+// });
 
 
 
@@ -218,17 +218,34 @@ async function sendMessageToServer(text, userIndex) {
     });
 }
 
+// New function.
+async function sendMessageToRasa(message) {
+    const userId = crypto.randomUUID();
+    // const response = await fetch('https://agent.memphis.netcraze.pro/webhooks/rest/webhook', {
+    const response = await fetch('http://localhost:5005/webhooks/rest/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            //sender: 'unique-user-id', // For session tracking
+            sender: userId, // Store this ID in localStorage/cookies so it persists across page reloads.
+            message: message
+        })
+    });
+    const data = await response.json();
+    // data is an array of bot responses, e.g., [{ "text": "Bot reply" }]
+    return data;
+}
 
 // --- Отправка сообщения ---
 async function handleSend() {
     const text = question.value.trim();
-    if (!text || currentChatIndex === null) return;
+    //if (!text || currentChatIndex === null) return;
 
     question.value = "";
 
     // пользовательское сообщение
-    addMessageToUI(text, "user");
-    await sendMessageToServer(text, 0);
+    // addMessageToUI(text, "user");
+    // await sendMessageToServer(text, 0);
 
     // // ответ модели (тест)
     // setTimeout(async () => {
@@ -236,10 +253,15 @@ async function handleSend() {
     //     addMessageToUI(botReply, "bot");
     //     await sendMessageToServer(botReply, 1);
     // }, 400);
+    
+    addMessageToUI(text, "user");
 
-    socket.emit("user_uttered", {
-        message: text,
-        session_id: String(currentChatIndex)
+    // Usage: Integrate with your chat UI
+    await sendMessageToRasa(text).then(responses => {
+        responses.forEach(resp => { 
+            addMessageToUI(resp.text, "bot")
+            console.log(resp.text)
+        });
     });
 }
 

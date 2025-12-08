@@ -8,6 +8,7 @@ pip install -r requirements.txt
 .\.venv\Scripts\activate
 rasa run actions
 rasa shell
+rasa run --enable-api --cors "*" -p 5005 --connector socketio
 
 После запуска rasa shell ввести команду:
 /session_start

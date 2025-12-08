@@ -117,6 +117,7 @@ class RAGService:
 
         prompt = f"""Use ONLY the following context to answer the question.
 Do not add any information that is not present in the context.
+Always respond in the SAME LANGUAGE as the question.
 If the question asks for a table, return it as clean markdown (no code fences).
 If it asks for a single number/year, return only that value.
 
