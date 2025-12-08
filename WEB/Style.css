@@ -195,3 +195,74 @@ button:disabled { background: #444; cursor: not-allowed; }
 .chat-actions button:hover {
   color: white;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.chat-item {
+    position: relative;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #1f1f1f;
+    margin-bottom: 6px;
+    display: flex;
+    flex-direction: column;
+    transition: background .2s;
+}
+
+.chat-item.active {
+    background: #3a3a3a;
+}
+
+.chat-title {
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.chat-meta {
+    font-size: 10px;
+    color: #bdbdbd;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-right: 30px; /* чтобы не залезало на кнопки */
+}
+
+.chat-actions {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.chat-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    opacity: 0.7;
+    transition: opacity .2s;
+    font-size: 14px;
+    color: #aaa;
+}
+
+.chat-btn:hover {
+    opacity: 1;
+}

@@ -1,108 +1,269 @@
-let currentChatId = null;
-const chatListElem = document.getElementById("chatList");
-const newChatBtn = document.getElementById("newChatBtn");
+const newChatBtn = document.getElementById('newChatBtn');
+const chatList = document.getElementById('chatList');
+const chatHistory = document.getElementById('chatHistory');
+const sendBtn = document.getElementById('sendBtn');
+const question = document.getElementById('question');
 
-async function loadChatList() {
-  const resp = await fetch(`${API_URL}/chats`);
-  const chats = await resp.json();
+let currentChatIndex = null;
 
-  chatListElem.innerHTML = "";
 
-  chats.sort((a, b) => b.updated_at - a.updated_at);
+// --- Создание чата ---
+async function createChat() {
+    const body = {
+        v0Name: "Новый чат",
+        v0ModelIndex: 0
+    };
 
-  chats.forEach(chat => {
-      const div = document.createElement("div");
-      div.className = "chat-item";
-      div.dataset.id = chat.id;
+    const response = await fetch("http://localhost:8000/Chats/Creates/V0Post", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+    });
 
-      if (chat.id === currentChatId) div.classList.add("active");
+    if (!response.ok) return;
 
-      const title = document.createElement("span");
-      title.className = "chat-title";
-      title.textContent = chat.title || "Новый чат";
-
-      title.onclick = (e) => {
-          e.stopPropagation();
-          enterEditMode(chat, title);
-      };
-
-      const meta = document.createElement("div");
-      meta.style.fontSize = "11px";
-      meta.style.color = "var(--text-secondary)";
-      meta.textContent =
-        `создан: ${new Date(chat.created_at).toLocaleString()} • обновлён: ${new Date(chat.updated_at).toLocaleString()}`;
-
-      div.appendChild(title);
-      div.appendChild(meta);
-
-      div.onclick = () => openChat(chat.id);
-
-      chatListElem.appendChild(div);
-  });
+    const chat = await response.json();
+    addChatToSidebar(chat);
+    selectChatByIndex(chat.v0ChatIndex);
 }
 
-async function deleteChat(id) {
-    await fetch(`${API_URL}/chats/${id}`, { method: "DELETE" });
+function addChatToSidebar(chat) {
+    const item = document.createElement('div');
+    item.classList.add('chat-item');
+    item.dataset.index = chat.v0ChatIndex;
+
+    const title = document.createElement('div');
+    title.className = 'chat-title';
+    title.textContent = chat.v0Name;
+
+    const meta = document.createElement('div');
+    meta.className = 'chat-meta';
+    meta.innerHTML = `
+        <span>Создан: ${new Date(chat.v0DateTimeRegister).toLocaleTimeString()}</span>
+        <span>Обновлён: ${new Date(chat.v0DateTimeUpdate).toLocaleTimeString()}</span>
+    `;
+
+    const actions = document.createElement('div');
+    actions.className = 'chat-actions';
+
+    // --- кнопка редактирования ---
+    const btnEdit = document.createElement('button');
+    btnEdit.className = 'chat-btn';
+    btnEdit.innerHTML = "✎";
+    btnEdit.addEventListener('click', async (e) => {
+        e.stopPropagation(); // не переключаем чат
+
+        // Текущее имя чата
+        const oldName = title.textContent;
+
+        // Ввод нового имени
+        const newName = prompt("Введите новое имя чата:", oldName);
+        if (!newName || newName.trim() === "" || newName === oldName) return;
+
+        // API: обновление имени
+        await fetch("http://localhost:8000/Chats/Updates/V0Post", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                V0ChatIndex: chat.v0ChatIndex,
+                V0UserIndex: 0,
+                V0Name: newName,
+                V0ModelIndex: chat.v0ModelIndex ?? 0
+            })
+        });
+
+        // Визуальное обновление
+        title.textContent = newName;
+        console.log("Имя изменено:", newName);
+    });
+
+    // --- кнопка удаления ---
+    const btnDelete = document.createElement('button');
+    btnDelete.className = 'chat-btn';
+    btnDelete.innerHTML = "✕";
+    btnDelete.addEventListener('click', async (e) => {
+        e.stopPropagation(); // не переключаем чат
+
+        const index = chat.v0ChatIndex;
+
+        // API запрос на удаление
+        await fetch("http://localhost:8000/Chats/Deletes/V0Post", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                V0ChatIndex: index,
+                V0UserIndex: 0
+            })
+        });
+
+        console.log("Удалён:", index);
+
+        // удаляем элемент из DOM
+        item.remove();
+
+        // если удалён выбранный чат – переключаемся
+        if (currentChatIndex === index) {
+            const items = [...chatList.children];
+            if (items.length > 0) {
+                const firstAvailable = +items[0].dataset.index;
+                selectChatByIndex(firstAvailable);
+            } else {
+                currentChatIndex = null;
+                chatHistory.innerHTML = "";
+            }
+        }
+    });
+
+
+
+    actions.appendChild(btnEdit);
+    actions.appendChild(btnDelete);
+
+    item.appendChild(title);
+    item.appendChild(meta);
+    item.appendChild(actions);
+
+    // --- кликаем по блоку → выбираем чат ---
+    item.addEventListener('click', () => {
+        selectChatByIndex(chat.v0ChatIndex);
+    });
+
+    chatList.appendChild(item);
 }
 
-newChatBtn.addEventListener("click", async () => {
-  const resp = await fetch(`${API_URL}/chats`, { method: "POST" });
-  const chat = await resp.json();
 
-  currentChatId = chat.id;
+// --- Выбор чата ---
+function selectChatByIndex(index) {
+    currentChatIndex = index;
 
-  document.querySelectorAll(".chat-item").forEach(i =>
-    i.classList.remove("active")
-  );
+    document.querySelectorAll('.chat-item')
+        .forEach(e => e.classList.remove('active'));
 
-  const div = document.createElement("div");
-  div.className = "chat-item active";
-  div.dataset.id = chat.id;
+    const selected = [...chatList.children]
+        .find(e => e.dataset.index == index);
 
-  const title = document.createElement("span");
-  title.className = "chat-title";
-  title.textContent = chat.title;
+    if (selected) selected.classList.add('active');
 
-  title.onclick = (e) => {
-    e.stopPropagation();
-    enterEditMode(chat, title);
-  };
+    chatHistory.innerHTML = "";
+    loadMessages(index);
+}
 
-  div.appendChild(title);
-  div.onclick = () => openChat(chat.id);
 
-  chatListElem.prepend(div);
+// --- Загрузка сообщений ---
+async function loadMessages(chatIndex) {
+    const body = {
+        V0ChatIndex: chatIndex,
+        V0UserIndex: 0,
+        V0Message: ""
+    };
 
-  loadChatMessages(chat.id);
+    const response = await fetch("http://localhost:8000/Chats/Messages/V0Get", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+    });
+
+    if (!response.ok) return;
+
+    const data = await response.json();
+    const targetChat = data.find(c => c.v0ChatIndex === chatIndex);
+    if (!targetChat || !targetChat.v0Messages) return;
+
+    chatHistory.innerHTML = "";
+
+    targetChat.v0Messages.forEach(m => {
+        addMessageToUI(
+            m.v0Content,
+            m.v0UserIndex === 0 ? "user" : "bot"
+        );
+    });
+}
+
+
+// --- UI сообщение ---
+function addMessageToUI(text, type = "user") {
+    const msg = document.createElement("div");
+    msg.className = "message " + type;
+    msg.textContent = text;
+    chatHistory.appendChild(msg);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+
+// --- API отправка ---
+async function sendMessageToServer(text, userIndex) {
+    const body = {
+        V0ChatIndex: currentChatIndex,
+        V0UserIndex: userIndex,
+        V0Message: text
+    };
+
+    await fetch("http://localhost:8000/Chats/Sends/V0Post", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+    });
+}
+
+
+// --- Отправка сообщения ---
+async function handleSend() {
+    const text = question.value.trim();
+    if (!text || currentChatIndex === null) return;
+
+    question.value = "";
+
+    // пользовательское сообщение
+    addMessageToUI(text, "user");
+    await sendMessageToServer(text, 0);
+
+    // ответ модели (тест)
+    setTimeout(async () => {
+        const botReply = "💡 Ответ модели";
+        addMessageToUI(botReply, "bot");
+        await sendMessageToServer(botReply, 1);
+    }, 400);
+}
+
+// загрузка всех чатов
+async function loadAllChats() {
+    chatList.innerHTML = "";
+
+    const response = await fetch("http://localhost:8000/Chats/Fulls/V0Get", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            V0ChatIndex: -1, // запрос списка всех чатов
+            V0UserIndex: 0,
+            V0Message: ""
+        })
+    });
+
+    if (!response.ok) return;
+
+    const chats = await response.json();
+    if (!Array.isArray(chats)) return;
+
+    chats.forEach(c => addChatToSidebar(c));
+
+    if (chats.length > 0) {
+        selectChatByIndex(chats[0].v0ChatIndex);
+    } else {
+        currentChatIndex = null;
+        chatHistory.innerHTML = "";
+    }
+}
+
+// --- События ---
+newChatBtn.addEventListener('click', createChat);
+sendBtn.addEventListener('click', handleSend);
+question.addEventListener('keydown', e => {
+    if (e.key === "Enter") handleSend();
 });
 
-async function openChat(id) {
-  currentChatId = id;
-
-  document.querySelectorAll(".chat-item").forEach(item => {
-    item.classList.remove("active");
-  });
-
-  const active = document.querySelector(`.chat-item[data-id="${id}"]`);
-  if (active) active.classList.add("active");
-
-  await loadChatMessages(id);
-}
-
-async function loadChatMessages(chatId) {
-  chatHistory.innerHTML = "";
-
-  const resp = await fetch(`${API_URL}/chats/${chatId}`);
-  const data = await resp.json();
-
-  console.log("hello?: ", data)
-
-  data.messages.forEach(msg => addMessage(msg.role, msg.text));
-}
-
-window.onload = () => {
-  loadChatList();
-};
+window.addEventListener("DOMContentLoaded", () => {
+    loadAllChats();
+});
 
 
 
@@ -121,215 +282,92 @@ window.onload = () => {
 
 
 
-const API_URL = "http://localhost:8001";  // поменяйте при деплое
 
-const dropZone = document.getElementById("dropZone");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////// ПОЛНАЯ РАБОТА С ЗАГРУЗКОЙ КНОПКИ
+
 const fileInput = document.getElementById("fileInput");
 const uploadBtn = document.getElementById("uploadBtn");
 const uploadStatus = document.getElementById("uploadStatus");
-const questionInput = document.getElementById("question");
-const sendBtn = document.getElementById("sendBtn");
-const chatHistory = document.getElementById("chatHistory");
+const dropZone = document.getElementById("dropZone");
 
 let selectedFiles = [];
 
-// Drag & drop
+// --- Активируем кнопку, когда выбраны файлы ---
+fileInput.addEventListener("change", () => {
+    selectedFiles = [...fileInput.files];
+    uploadBtn.disabled = selectedFiles.length === 0;
+});
+
+// --- Drag & Drop для удобства ---
 dropZone.addEventListener("click", () => fileInput.click());
-dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("dragover"); });
-dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
-dropZone.addEventListener("drop", e => {
-  e.preventDefault();
-  dropZone.classList.remove("dragover");
-  handleFiles(e.dataTransfer.files);
+
+dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZone.classList.add("dragover");
 });
 
-fileInput.addEventListener("change", () => handleFiles(fileInput.files));
+dropZone.addEventListener("dragleave", () => {
+    dropZone.classList.remove("dragover");
+});
 
-function handleFiles(files) {
-  selectedFiles = Array.from(files);
-  dropZone.innerHTML = `<p>Выбрано файлов: ${selectedFiles.length}</p>`;
-  uploadBtn.disabled = false;
-}
+dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropZone.classList.remove("dragover");
 
-// Загрузка файлов
+    selectedFiles = [...e.dataTransfer.files];
+    fileInput.files = e.dataTransfer.files;
+    uploadBtn.disabled = selectedFiles.length === 0;
+});
+
+
+// --- Загрузка в базу ---
 uploadBtn.addEventListener("click", async () => {
-  if (selectedFiles.length === 0) return;
+    if (selectedFiles.length === 0) return;
 
-  uploadStatus.textContent = "Загружается...";
-  uploadBtn.disabled = true;
+    uploadBtn.disabled = true;
+    uploadStatus.innerText = "⏳ Загружается…";
 
-  const formData = new FormData();
-  selectedFiles.forEach((file, i) => formData.append("files", file));
+    const formData = new FormData();
+    selectedFiles.forEach(f => formData.append("files", f));
 
-  try {
-    const resp = await fetch(`${API_URL}/ingest`, {
-      method: "POST",
-      body: formData
-    });
-    if (resp.ok) {
-      uploadStatus.innerHTML = "База знаний успешно загружена!";
-      selectedFiles = [];
-      dropZone.innerHTML = "<p>Перетащите новые файлы или кликните</p>";
-    } else {
-      uploadStatus.textContent = "Ошибка загрузки";
+    try {
+        const response = await fetch("http://localhost:8000/Knowledge/Upload", {
+            method: "POST",
+            body: formData
+        });
+
+        if (!response.ok) throw new Error("Ошибка API");
+
+        uploadStatus.innerText = "✅ Файлы загружены в базу!";
+        fileInput.value = "";
+        selectedFiles = [];
+    } catch (err) {
+        uploadStatus.innerText = "❌ Ошибка загрузки";
+        console.error(err);
+    } finally {
+        uploadBtn.disabled = true;
     }
-  } catch (e) {
-    uploadStatus.textContent = "Нет связи с сервером";
-  }
-  uploadBtn.disabled = false;
 });
-
-// Отправка вопроса
-sendBtn.addEventListener("click", sendQuestion);
-questionInput.addEventListener("keypress", e => e.key === "Enter" && !e.shiftKey && sendQuestion());
-
-async function sendQuestion() {
-  if (!currentChatId) {
-    alert("Сначала создайте или выберите чат!");
-    return;
-  }
-
-  const question = questionInput.value.trim();
-  if (!question) return;
-
-  addMessage("user", question);
-  questionInput.value = "";
-
-  addMessage("assistant", "Думаю...");
-
-  try {
-    // 1 — сохранить сообщение пользователя в чате
-    await fetch(`${API_URL}/chats/${currentChatId}/messages`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role: "user", text: question })
-    });
-
-    // 2 — получить ответ RAG
-    const resp = await fetch(`${API_URL}/rag/query`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: question })
-    });
-    const data = await resp.json();
-
-    // удалить "Думаю..."
-    chatHistory.lastElementChild.remove();
-
-    // 3 — сохранить ответ ИИ в чат
-    await fetch(`${API_URL}/chats/${currentChatId}/messages`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role: "assistant", text: data.answer })
-    });
-
-    addMessage("assistant", data.answer, data.sources || []);
-  } catch (err) {
-    chatHistory.lastElementChild.remove();
-    addMessage("assistant", "Ошибка связи с сервером");
-  }
-}
-
-function addMessage(sender, text, sources = []) {
-  console.log("test message: `{text}`")
-  const div = document.createElement("div");
-  div.className = `message ${sender}`;
-
-  // Поддержка Markdown (простая)
-  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  text = text.replace(/\n/g, '<br>');
-
-  div.innerHTML = text;
-
-  // Добавляем источники
-  if (sources.length > 0) {
-    const srcDiv = document.createElement("div");
-    srcDiv.className = "sources";
-    srcDiv.innerHTML = "<strong>Источники:</strong>";
-    sources.forEach(src => {
-      const s = document.createElement("div");
-      s.className = "source-item";
-      s.innerHTML = `
-        <strong>Релевантность: ${(src.score*100).toFixed(1)}%</strong><br>
-        ${src.file ? src.file + (src.page ? ` (стр. ${src.page})` : "") + "<br>" : ""}
-        <em>${src.text.substring(0, 300)}...</em>
-      `;
-      srcDiv.appendChild(s);
-    });
-    div.appendChild(srcDiv);
-  }
-
-  chatHistory.appendChild(div);
-  chatHistory.scrollTop = chatHistory.scrollHeight;
-}
-
-
-
-
-
-
-
-function renderChatList(chats) {
-    const list = document.getElementById("chat-list");
-    list.innerHTML = "";
-
-    chats.forEach(chat => {
-        const item = document.createElement("div");
-        item.className = "chat-item";
-
-        const title = document.createElement("span");
-        title.textContent = chat.title;
-        title.className = "chat-title";
-
-        // При клике — переход в режим редактирования
-        title.onclick = () => enterEditMode(chat, title);
-
-        item.appendChild(title);
-        list.appendChild(item);
-    });
-}
-
-function enterEditMode(chat, titleElement) {
-    const input = document.createElement("input");
-    input.type = "text";
-    input.value = chat.title;
-    input.className = "chat-title-input";
-
-    titleElement.replaceWith(input);
-    input.focus();
-
-    // Сохранить на Enter
-    input.addEventListener("keydown", async e => {
-        if (e.key === "Enter") {
-            await renameChat(chat.id, input.value);
-        }
-        if (e.key === "Escape") {
-            exitEditMode(chat, input);
-        }
-    });
-
-    // Сохранение при потере фокуса
-    input.addEventListener("blur", async () => {
-        await renameChat(chat.id, input.value);
-    });
-}
-
-function exitEditMode(chat, input) {
-    const title = document.createElement("span");
-    title.textContent = chat.title;
-    title.className = "chat-title";
-    title.onclick = () => enterEditMode(chat, title);
-
-    input.replaceWith(title);
-}
-
-async function renameChat(id, newTitle) {
-    await fetch(`http://localhost:8001/chats/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: newTitle })
-    });
-
-    // Обновляем список чатов
-    await loadChatList();
-}
