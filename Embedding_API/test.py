@@ -43,7 +43,6 @@ def test_chunks_only():
         for chunk in data['chunks']:
             print(f"Чанк {chunk['chunk_id']}:")
             print(f"  Длина: {chunk['length']} символов")
-            print(f"  Позиция: {chunk['start_pos']}-{chunk['end_pos']}")
             print(f"  Текст: {chunk['text'][:100]}...\n")
     else:
         print(f"Ошибка: {response.text}\n")
@@ -64,6 +63,7 @@ def test_process():
     
     response = requests.post(f"{BASE_URL}/process", json=payload)
     print(f"Статус: {response.status_code}")
+    print(response.json())
     
     if response.status_code == 200:
         data = response.json()
@@ -75,7 +75,6 @@ def test_process():
             print(f"Чанк {chunk['chunk_id']}:")
             print(f"  Текст: {chunk['text'][:80]}...")
             print(f"  Первые 5 значений эмбеддинга: {chunk['embedding'][:5]}")
-            print(f"  Позиция: {chunk['start_pos']}-{chunk['end_pos']}\n")
     else:
         print(f"Ошибка: {response.text}\n")
 
