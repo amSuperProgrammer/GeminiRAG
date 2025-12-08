@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gemini RAG — Чат</title>
+  <link rel="stylesheet" href="Style.css" />
+  <link rel="icon" href="assets/logo.svg" />
+</head>
+
+<body>
+
+  <div class="sidebar">
+    <button onclick="location.href='Chat.html'" class="tab-btn active">Чаты</button>
+    <button onclick="location.href='Upload.html'" class="tab-btn">Загрузка</button>
+
+    <button id="newChatBtn">+ Новый чат</button>
+    <div class="chat-list" id="chatList"></div>
+  </div>
+
+  <div class="container">
+    <header>
+      <h1>Gemini RAG</h1>
+      <p>Контекстный ИИ на вашей базе знаний</p>
+    </header>
+
+    <section class="chat-section">
+      <div id="chatHistory"></div>
+
+      <div class="input-area">
+        <textarea id="question" placeholder="Задайте вопрос по базе знаний..." rows="2"></textarea>
+        <button id="sendBtn">Отправить</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="Script.js"></script>
+</body>
+</html>
