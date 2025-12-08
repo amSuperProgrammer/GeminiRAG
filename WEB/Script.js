@@ -11,27 +11,38 @@ async function loadChatList() {
   chats.sort((a, b) => b.updated_at - a.updated_at);
 
   chats.forEach(chat => {
-    const div = document.createElement("div");
-    div.className = "chat-item";
-    div.dataset.id = chat.id;
+      const div = document.createElement("div");
+      div.className = "chat-item";
+      div.dataset.id = chat.id;
 
-    if (chat.id === currentChatId) div.classList.add("active");
+      if (chat.id === currentChatId) div.classList.add("active");
 
-    const title = document.createElement("span");
-    title.className = "chat-title";
-    title.textContent = chat.title || "Новый чат";
+      const title = document.createElement("span");
+      title.className = "chat-title";
+      title.textContent = chat.title || "Новый чат";
 
-    title.onclick = (e) => {
-      e.stopPropagation();
-      enterEditMode(chat, title);
-    };
+      title.onclick = (e) => {
+          e.stopPropagation();
+          enterEditMode(chat, title);
+      };
 
-    div.appendChild(title);
+      const meta = document.createElement("div");
+      meta.style.fontSize = "11px";
+      meta.style.color = "var(--text-secondary)";
+      meta.textContent =
+        `создан: ${new Date(chat.created_at).toLocaleString()} • обновлён: ${new Date(chat.updated_at).toLocaleString()}`;
 
-    div.onclick = () => openChat(chat.id);
+      div.appendChild(title);
+      div.appendChild(meta);
 
-    chatListElem.appendChild(div);
+      div.onclick = () => openChat(chat.id);
+
+      chatListElem.appendChild(div);
   });
+}
+
+async function deleteChat(id) {
+    await fetch(`${API_URL}/chats/${id}`, { method: "DELETE" });
 }
 
 newChatBtn.addEventListener("click", async () => {

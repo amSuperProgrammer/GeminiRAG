@@ -43,9 +43,13 @@ app.get("/chats", (req, res) => {
 app.post("/chats", (req, res) => {
     const db = loadDB();
 
+    const now = new Date().toISOString();
+
     const newChat = {
         id: Date.now(),
         title: req.body?.title || "Новый чат",
+        created_at: now,
+        updated_at: now,
         messages: []
     };
 
@@ -54,6 +58,7 @@ app.post("/chats", (req, res) => {
 
     res.json(newChat);
 });
+
 
 // -----------------------------
 // Получить весь чат целиком
@@ -68,6 +73,8 @@ app.get("/chats/:id", (req, res) => {
     res.json({
         id: chat.id,
         title: chat.title,
+        created_at: chat.created_at,
+        updated_at: chat.updated_at,
         messages: chat.messages
     });
 });
@@ -101,11 +108,17 @@ app.post("/chats/:id/messages", (req, res) => {
     };
 
     chat.messages.push(msg);
+    chat.updated_at = msg.time;   // ← обновление времени чата
     saveDB(db);
 
     res.json(msg);
+});
 
-    console.log("сохраняка")
+app.delete("/chats/:id", (req, res) => {
+    const db = loadDB();
+    db.chats = db.chats.filter(c => c.id != req.params.id);
+    saveDB(db);
+    res.json({ ok: true });
 });
 
 // -----------------------------
